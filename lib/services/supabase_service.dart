@@ -13,25 +13,32 @@ import '../models/user_profile.dart';
 class SupabaseService extends ChangeNotifier {
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: '',
+    defaultValue: 'https://mgxmwvfngwsicaqrgjoi.supabase.co',
   );
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue: '',
+  static const String supabasePublishableKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
+    defaultValue: 'sb_publishable_HRvd-p8a0S5dZHWuAM9pVg_i7vvryOQ',
   );
 
   UserProfile? currentUser;
   bool isLoading = false;
   String errorMessage = '';
 
+  List<Career> careers = [];
+  List<Subject> subjects = [];
+  List<String> divisions = ['1ro - 1ra', '2do - 1ra', '3ro - 1ra'];
+
   bool get isAuthenticated => currentUser != null;
 
   bool get isCloudConfigured =>
-      supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+      supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty;
 
   static Future<void> initialize() async {
-    if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
-      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+    if (supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty) {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        publishableKey: supabasePublishableKey,
+      );
     }
   }
 
@@ -75,8 +82,9 @@ class SupabaseService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     if (profile.role == 'student') {
       await prefs.setString('student_name', profile.fullName);
-      if (profile.savedCourse.isNotEmpty) {
-        await prefs.setString('student_course', profile.savedCourse);
+      if (profile.enrolledCourseName != null &&
+          profile.enrolledCourseName!.isNotEmpty) {
+        await prefs.setString('student_course', profile.enrolledCourseName!);
       }
     } else {
       await prefs.setString('teacher_first_name', profile.firstName);
@@ -89,7 +97,10 @@ class SupabaseService extends ChangeNotifier {
     required String password,
     required String firstName,
     required String lastName,
-    required String role,
+    String role = 'student',
+    int? yearLevel,
+    String? division,
+    String? careerName,
   }) async {
     isLoading = true;
     errorMessage = '';
@@ -108,12 +119,18 @@ class SupabaseService extends ChangeNotifier {
         }
       }
 
+      final courseDisplay =
+          (yearLevel != null && division != null && careerName != null)
+          ? '${yearLevel}ro - $division $careerName'
+          : '';
+
       final profile = UserProfile(
         id: userId,
         email: email.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         role: role,
+        enrolledCourseName: courseDisplay,
         createdAt: DateTime.now(),
       );
 
@@ -121,6 +138,40 @@ class SupabaseService extends ChangeNotifier {
         await Supabase.instance.client
             .from('user_profiles')
             .upsert(profile.toJson());
+
+        // Inscribir al alumno en course_enrollments de forma EXACTA
+        if (role == 'student' &&
+            yearLevel != null &&
+            division != null &&
+            careerName != null) {
+          // Buscamos primero la carrera para tener su id
+          final careerData = await Supabase.instance.client
+              .from('careers')
+              .select('id')
+              .eq('name', careerName)
+              .maybeSingle();
+          if (careerData != null) {
+            final careerId = careerData['id'];
+            // Buscamos el curso EXACTO con las 3 coincidencias
+            final courseData = await Supabase.instance.client
+                .from('courses')
+                .select('id')
+                .eq('career_id', careerId)
+                .eq('year_level', yearLevel)
+                .eq('division', division)
+                .maybeSingle();
+            if (courseData != null) {
+              await Supabase.instance.client.from('course_enrollments').upsert({
+                'student_id': userId,
+                'course_id': courseData['id'],
+              });
+            } else {
+              throw Exception(
+                'No se encontró el curso exacto: $yearLevel $division para $careerName',
+              );
+            }
+          }
+        }
       }
 
       await _saveUserLocally(profile, password: password);
@@ -197,34 +248,38 @@ class SupabaseService extends ChangeNotifier {
   Future<void> syncAttendanceSession(AttendanceSession session) async {
     if (!isCloudConfigured) return;
     try {
-      await Supabase.instance.client.from('attendance_sessions').insert({
-        'class_name': session.className,
-        'subject': session.subject,
-        'code': session.code,
-        'date': session.date.toIso8601String(),
-        'students': session.students,
-      });
+      await Supabase.instance.client
+          .from('attendance_sessions')
+          .insert(session.toJson());
     } catch (_) {}
   }
 
-  List<Career> getDefaultCareers() {
-    return [
-      Career(id: '1', name: 'Desarrollo de Software'),
-      Career(id: '2', name: 'Enfermería'),
-      Career(id: '3', name: 'Diseño Gráfico'),
-      Career(id: '4', name: 'Turismo'),
-      Career(id: '5', name: 'Administración'),
-    ];
-  }
+  Future<void> fetchCatalogData() async {
+    if (!isCloudConfigured) return;
+    try {
+      final careersData = await Supabase.instance.client
+          .from('careers')
+          .select()
+          .order('name');
 
-  List<Subject> getDefaultSubjects() {
-    return [
-      Subject(id: '1', name: 'Programación', careerId: '1'),
-      Subject(id: '2', name: 'Base de Datos', careerId: '1'),
-      Subject(id: '3', name: 'Matemáticas', careerId: '1'),
-      Subject(id: '4', name: 'Literatura', careerId: '4'),
-      Subject(id: '5', name: 'Práctica Profesional', careerId: '2'),
-    ];
+      careers = (careersData as List)
+          .map((item) => Career.fromJson(item))
+          .toList();
+
+      final subjectsData = await Supabase.instance.client
+          .from('subjects')
+          .select()
+          .order('name');
+
+      subjects = (subjectsData as List)
+          .map((item) => Subject.fromJson(item))
+          .toList();
+
+      notifyListeners();
+    } catch (e) {
+      errorMessage = 'Error al cargar datos de Supabase: $e';
+      notifyListeners();
+    }
   }
 
   List<CourseClass> parseSavedClasses(List<String> entries) {

@@ -46,3 +46,14 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   is_present BOOLEAN NOT NULL DEFAULT TRUE,
   PRIMARY KEY (session_id, student_profile_id)
 );
+
+INSERT INTO careers (name) VALUES
+  ('Desarrollo de Software'),
+  ('Comercio Exterior'),
+  ('Medio Ambiente'),
+  ('Higiene y Seguridad'),
+  ('Administración de Empresas'),
+  ('Sistemas de control'),
+  ('Microelectrónica'),
+  ('Química')
+ON CONFLICT (name) DO NOTHING;

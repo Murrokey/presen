@@ -1,30 +1,53 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:presen/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:presen/services/supabase_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Prueba completa de Registro, Logout, Login y Clases en SupabaseService', () async {
+    SharedPreferences.setMockInitialValues({});
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final service = SupabaseService();
+    print('1. ¿Arranca logueado?: ${service.isAuthenticated}');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    final registroOk = await service.registerUser(
+      email: 'nahuel@escuela.com',
+      password: '123456',
+      firstName: 'Nahuel',
+      lastName: 'Gomez',
+    );
+    print('2. ¿Se registró bien?: $registroOk');
+    print(
+      '   Usuario actual: ${service.currentUser?.fullName} | Rol por defecto: ${service.currentUser?.role}',
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await service.logoutUser();
+    print(
+      '3. Después de logoutUser(), ¿sigue logueado?: ${service.isAuthenticated}',
+    );
+
+    final loginMal = await service.loginUser(
+      email: 'nahuel@escuela.com',
+      password: 'clave_equivocada',
+    );
+    print(
+      '4. Intento con clave mala -> ¿Entró?: $loginMal | Error: ${service.errorMessage}',
+    );
+
+    final loginBien = await service.loginUser(
+      email: 'nahuel@escuela.com',
+      password: '123456',
+    );
+    print(
+      '5. Intento con clave correcta -> ¿Entró?: $loginBien | Bienvenido: ${service.currentUser?.fullName}',
+    );
+
+    final clases = service.parseSavedClasses([
+      '2do - 1ra|Desarrollo de Software|Programación',
+    ]);
+    print(
+      '6. Clase reconstruida con Modelo 4: Curso="${clases.first.fullCourseName}", Materia="${clases.first.subjectName}"',
+    );
+
+    expect(service.isAuthenticated, true);
   });
 }

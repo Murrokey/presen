@@ -4,17 +4,19 @@ class UserProfile {
   final String firstName;
   final String lastName;
   final String role;
-  final String savedCourse;
   final DateTime createdAt;
+  final String? enrolledCourseId;
+  final String? enrolledCourseName;
 
   UserProfile({
     required this.id,
     required this.email,
     required this.firstName,
     required this.lastName,
-    required this.role,
-    this.savedCourse = '',
+    this.role = 'student',
     required this.createdAt,
+    this.enrolledCourseId,
+    this.enrolledCourseName,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -26,8 +28,9 @@ class UserProfile {
       firstName: json['first_name'] ?? '',
       lastName: json['last_name'] ?? '',
       role: json['role'] ?? 'student',
-      savedCourse: json['saved_course'] ?? '',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      enrolledCourseId: json['enrolled_course_id']?.toString(),
+      enrolledCourseName: json['enrolled_course_name'],
     );
   }
 
@@ -38,7 +41,6 @@ class UserProfile {
       'first_name': firstName,
       'last_name': lastName,
       'role': role,
-      'saved_course': savedCourse,
       'created_at': createdAt.toIso8601String(),
     };
   }
