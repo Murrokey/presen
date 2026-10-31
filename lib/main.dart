@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'screens/login_screen.dart';
+import 'screens/student_screen.dart';
+import 'screens/teacher_screen.dart';
+import 'services/nearby_service.dart';
 import 'services/supabase_service.dart';
 
 Future<void> main() async {
@@ -14,7 +17,10 @@ Future<void> main() async {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider.value(value: supabaseService)],
+      providers: [
+        ChangeNotifierProvider.value(value: supabaseService),
+        ChangeNotifierProvider(create: (_) => NearbyService()),
+      ],
       child: const AttendanceApp(),
     ),
   );
@@ -45,30 +51,15 @@ class AttendanceApp extends StatelessWidget {
       initialRoute: supabaseService.isAuthenticated ? '/home' : '/login',
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '¡Adentro! Hola ${supabaseService.currentUser?.fullName}',
-                  style: const TextStyle(fontSize: 22),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    await supabaseService.logoutUser();
-                    if (context.mounted) {
-                      Navigator.pushReplacementNamed(context, '/login');
-                    }
-                  },
-                  child: const Text('Probar Cerrar Sesión'),
-                ),
-              ],
-            ),
-          ),
-        ),
+        '/home': (context) => const StudentScreen(),
       },
+      //   '/home': (context) {
+      //   //   final isTeacher = supabaseService.currentUser?.role == 'teacher';
+      //   //   return isTeacher ? const TeacherScreen() : const StudentScreen();
+      //   // },
+      //   // '/student': (context) => const StudentScreen(),
+      //   // '/teacher': (context) => const TeacherScreen(),
+      // },
     );
   }
 }

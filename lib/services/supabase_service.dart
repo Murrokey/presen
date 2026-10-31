@@ -46,7 +46,12 @@ class SupabaseService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final savedUserJson = prefs.getString('current_user_profile');
     if (savedUserJson != null && savedUserJson.isNotEmpty) {
-      currentUser = UserProfile.fromJson(jsonDecode(savedUserJson));
+      final map = jsonDecode(savedUserJson) as Map<String, dynamic>;
+      final localCourse = prefs.getString('student_course');
+      if (map['enrolled_course_name'] == null && localCourse != null) {
+        map['enrolled_course_name'] = localCourse;
+      }
+      currentUser = UserProfile.fromJson(map);
       notifyListeners();
     }
   }
@@ -63,7 +68,11 @@ class SupabaseService extends ChangeNotifier {
 
   Future<void> _saveUserLocally(UserProfile profile, {String? password}) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('current_user_profile', jsonEncode(profile.toJson()));
+    final jsonMap = profile.toJson();
+    if (profile.enrolledCourseName != null) {
+      jsonMap['enrolled_course_name'] = profile.enrolledCourseName;
+    }
+    await prefs.setString('current_user_profile', jsonEncode(jsonMap));
     await _syncRolePrefs(profile);
 
     if (password != null) {
@@ -203,11 +212,29 @@ class SupabaseService extends ChangeNotifier {
         if (userId != null) {
           final data = await Supabase.instance.client
               .from('user_profiles')
-              .select()
+              .select('*, course_enrollments(courses(*, careers(*)))')
               .eq('id', userId)
               .maybeSingle();
+
           if (data != null) {
-            currentUser = UserProfile.fromJson(data);
+            String? courseTitle;
+            final enrollments = data['course_enrollments'];
+            if (enrollments != null && (enrollments as List).isNotEmpty) {
+              final c = enrollments[0]['courses'];
+              if (c != null) {
+                final yLevel = c['year_level'] ?? '';
+                final div = c['division'] ?? '';
+                final carName = c['careers'] != null
+                    ? c['careers']['name']
+                    : '';
+                courseTitle = '${yLevel}ro - $div $carName'.trim();
+              }
+            }
+
+            final profileMap = Map<String, dynamic>.from(data);
+            profileMap['enrolled_course_name'] = courseTitle;
+
+            currentUser = UserProfile.fromJson(profileMap);
             await _saveUserLocally(currentUser!);
             isLoading = false;
             notifyListeners();
