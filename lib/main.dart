@@ -7,6 +7,8 @@ import 'screens/student_screen.dart';
 import 'screens/teacher_screen.dart';
 import 'services/nearby_service.dart';
 import 'services/supabase_service.dart';
+import 'screens/student_history_screen.dart';
+import 'models/subject.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,9 +51,30 @@ class AttendanceApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF12121A),
       ),
       initialRoute: supabaseService.isAuthenticated ? '/home' : '/login',
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/home': (context) => const StudentScreen(),
+      onGenerateRoute: (settings) {
+        if (settings.name == '/login') {
+          return MaterialPageRoute(builder: (_) => const LoginScreen());
+        }
+        if (settings.name == '/home') {
+          return MaterialPageRoute(builder: (_) => const StudentScreen());
+          // final isTeacher = supabaseService.currentUser?.role == 'teacher';
+          // return MaterialPageRoute(
+          //   builder: (_) => isTeacher ? const TeacherScreen() : const StudentScreen(),
+          // );
+        }
+        if (settings.name == '/student') {
+          return MaterialPageRoute(builder: (_) => const StudentScreen());
+        }
+        // if (settings.name == '/teacher') {
+        //   return MaterialPageRoute(builder: (_) => const TeacherScreen());
+        // }
+        if (settings.name == '/student-history') {
+          final subject = settings.arguments as Subject;
+          return MaterialPageRoute(
+            builder: (_) => StudentHistoryScreen(subject: subject),
+          );
+        }
+        return null;
       },
       //   '/home': (context) {
       //   //   final isTeacher = supabaseService.currentUser?.role == 'teacher';

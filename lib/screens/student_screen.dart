@@ -45,11 +45,19 @@ class _StudentScreenState extends State<StudentScreen> {
             : null as dynamic,
       );
 
-      if (matchedCareer != null) {
-        _mySubjects = supabaseService.subjects
-            .where((s) => s.careerId == matchedCareer.id)
-            .toList();
+      int studentYearLevel = 1;
+      final yearMatch = RegExp(r'(\d+)').firstMatch(courseName);
+      if (yearMatch != null) {
+        studentYearLevel = int.tryParse(yearMatch.group(1)!) ?? 1;
       }
+
+      _mySubjects = supabaseService.subjects
+          .where(
+            (s) =>
+                s.careerId == matchedCareer.id &&
+                s.yearLevel == studentYearLevel,
+          )
+          .toList();
 
       setState(() => _isLoadingSubjects = false);
     }
