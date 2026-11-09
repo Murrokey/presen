@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'models/subject.dart';
 import 'screens/login_screen.dart';
+import 'screens/student_history_screen.dart';
 import 'screens/student_screen.dart';
 import 'screens/teacher_screen.dart';
 import 'services/nearby_service.dart';
 import 'services/supabase_service.dart';
-import 'screens/student_history_screen.dart';
-import 'models/subject.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +36,7 @@ class AttendanceApp extends StatelessWidget {
     final supabaseService = Provider.of<SupabaseService>(context);
 
     return MaterialApp(
-      title: 'Asistencia+',
+      title: 'Presen',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -55,34 +55,34 @@ class AttendanceApp extends StatelessWidget {
         if (settings.name == '/login') {
           return MaterialPageRoute(builder: (_) => const LoginScreen());
         }
+
         if (settings.name == '/home') {
-          return MaterialPageRoute(builder: (_) => const StudentScreen());
-          // final isTeacher = supabaseService.currentUser?.role == 'teacher';
-          // return MaterialPageRoute(
-          //   builder: (_) => isTeacher ? const TeacherScreen() : const StudentScreen(),
-          // );
+          final isTeacher = supabaseService.currentUser?.role == 'teacher';
+          return MaterialPageRoute(
+            builder: (_) =>
+                isTeacher ? const TeacherScreen() : const StudentScreen(),
+          );
         }
+
         if (settings.name == '/student') {
           return MaterialPageRoute(builder: (_) => const StudentScreen());
         }
-        // if (settings.name == '/teacher') {
-        //   return MaterialPageRoute(builder: (_) => const TeacherScreen());
-        // }
-        if (settings.name == '/student-history') {
-          final subject = settings.arguments as Subject;
-          return MaterialPageRoute(
-            builder: (_) => StudentHistoryScreen(subject: subject),
-          );
+
+        if (settings.name == '/teacher') {
+          return MaterialPageRoute(builder: (_) => const TeacherScreen());
         }
+
+        if (settings.name == '/student-history') {
+          final args = settings.arguments;
+          if (args is Subject) {
+            return MaterialPageRoute(
+              builder: (_) => StudentHistoryScreen(subject: args),
+            );
+          }
+        }
+
         return null;
       },
-      //   '/home': (context) {
-      //   //   final isTeacher = supabaseService.currentUser?.role == 'teacher';
-      //   //   return isTeacher ? const TeacherScreen() : const StudentScreen();
-      //   // },
-      //   // '/student': (context) => const StudentScreen(),
-      //   // '/teacher': (context) => const TeacherScreen(),
-      // },
     );
   }
 }
