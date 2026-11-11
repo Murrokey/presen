@@ -38,11 +38,17 @@ class _StudentScreenState extends State<StudentScreen> {
       final user = supabaseService.currentUser;
       final courseName = user?.enrolledCourseName ?? '';
 
+      if (supabaseService.careers.isEmpty) {
+        setState(() {
+          _mySubjects = [];
+          _isLoadingSubjects = false;
+        });
+        return;
+      }
+
       final matchedCareer = supabaseService.careers.firstWhere(
         (c) => courseName.contains(c.name),
-        orElse: () => supabaseService.careers.isNotEmpty
-            ? supabaseService.careers.first
-            : null as dynamic,
+        orElse: () => supabaseService.careers.first,
       );
 
       int studentYearLevel = 1;

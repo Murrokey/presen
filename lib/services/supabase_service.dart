@@ -282,31 +282,59 @@ class SupabaseService extends ChangeNotifier {
   }
 
   Future<void> fetchCatalogData() async {
-    if (!isCloudConfigured) return;
-    try {
-      final careersData = await Supabase.instance.client
-          .from('careers')
-          .select()
-          .order('name');
+    final prefs = await SharedPreferences.getInstance();
 
-      careers = (careersData as List)
-          .map((item) => Career.fromJson(item))
-          .toList();
+    if (isCloudConfigured) {
+      try {
+        final careersData = await Supabase.instance.client
+            .from('careers')
+            .select()
+            .order('name');
 
-      final subjectsData = await Supabase.instance.client
-          .from('subjects')
-          .select()
-          .order('name');
+        careers = (careersData as List)
+            .map((item) => Career.fromJson(item))
+            .toList();
 
-      subjects = (subjectsData as List)
-          .map((item) => Subject.fromJson(item))
-          .toList();
+        final subjectsData = await Supabase.instance.client
+            .from('subjects')
+            .select()
+            .order('name');
 
-      notifyListeners();
-    } catch (e) {
-      errorMessage = 'Error al cargar datos de Supabase: $e';
-      notifyListeners();
+        subjects = (subjectsData as List)
+            .map((item) => Subject.fromJson(item))
+            .toList();
+
+        await prefs.setString(
+          'cached_careers',
+          jsonEncode(careers.map((c) => c.toJson()).toList()),
+        );
+        await prefs.setString(
+          'cached_subjects',
+          jsonEncode(subjects.map((s) => s.toJson()).toList()),
+        );
+
+        notifyListeners();
+        return;
+      } catch (_) {}
     }
+
+    final savedCareers = prefs.getString('cached_careers');
+    if (savedCareers != null && savedCareers.isNotEmpty) {
+      final list = jsonDecode(savedCareers) as List;
+      careers = list
+          .map((item) => Career.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    }
+
+    final savedSubjects = prefs.getString('cached_subjects');
+    if (savedSubjects != null && savedSubjects.isNotEmpty) {
+      final list = jsonDecode(savedSubjects) as List;
+      subjects = list
+          .map((item) => Subject.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    }
+
+    notifyListeners();
   }
 
   List<CourseClass> parseSavedClasses(List<String> entries) {
