@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'models/course_class.dart';
 import 'models/subject.dart';
+import 'screens/history_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/roster_screen.dart';
 import 'screens/student_history_screen.dart';
 import 'screens/student_screen.dart';
 import 'screens/teacher_screen.dart';
@@ -77,6 +80,24 @@ class AttendanceApp extends StatelessWidget {
           if (args is Subject) {
             return MaterialPageRoute(
               builder: (_) => StudentHistoryScreen(subject: args),
+            );
+          }
+        }
+
+        if (settings.name == '/teacher-stats') {
+          final args = settings.arguments;
+          if (args is CourseClass) {
+            return MaterialPageRoute(
+              builder: (_) => RosterScreen(courseClass: args),
+            );
+          }
+        }
+
+        if (settings.name == '/teacher-history') {
+          final args = settings.arguments;
+          if (args is CourseClass) {
+            return MaterialPageRoute(
+              builder: (_) => HistoryScreen(courseClass: args),
             );
           }
         }
