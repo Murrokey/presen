@@ -36,7 +36,10 @@ class AttendanceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final supabaseService = Provider.of<SupabaseService>(context);
+    final supabaseService = Provider.of<SupabaseService>(
+      context,
+      listen: false,
+    );
 
     return MaterialApp(
       title: 'Presen',

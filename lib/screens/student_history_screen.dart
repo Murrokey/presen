@@ -62,8 +62,11 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
 
         for (var item in (data as List)) {
           final session = item['attendance_sessions'];
+          final dateValue = item['recorded_at'] ??
+              session['session_date'] ??
+              session['created_at'];
           loadedRecords.add({
-            'date': session['session_date'] ?? item['recorded_at'],
+            'date': dateValue,
             'is_present': item['is_present'] ?? true,
           });
         }
@@ -177,7 +180,7 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
                                     record['date']?.toString() ?? '';
 
                                 String formattedDate = rawDate;
-                                final dt = DateTime.tryParse(rawDate);
+                                final dt = DateTime.tryParse(rawDate)?.toLocal();
                                 if (dt != null) {
                                   final day = dt.day.toString().padLeft(2, '0');
                                   final month = dt.month.toString().padLeft(
@@ -193,7 +196,7 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
                                     '0',
                                   );
                                   formattedDate =
-                                      '$day/$month/${dt.year} - $hour:$minute';
+                                      '$day/$month/${dt.year} - $hour:$minute hs';
                                 }
 
                                 return Container(
@@ -216,26 +219,32 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.calendar_today_rounded,
-                                            size: 18,
-                                            color: Colors.white.withValues(
-                                              alpha: 0.5,
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.calendar_today_rounded,
+                                              size: 16,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.5,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            formattedDate,
-                                            style: GoogleFonts.inter(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white,
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                formattedDate,
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.white,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
+                                      const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 10,
@@ -295,7 +304,7 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
 
   Widget _buildStatsCard(double percentage, Color percentageColor) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
@@ -304,34 +313,36 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatColumn('Total Clases', '$_totalClasses'),
+          Expanded(child: _buildStatColumn('Total Clases', '$_totalClasses')),
           Container(
-            height: 40,
+            height: 36,
             width: 1,
             color: Colors.white.withValues(alpha: 0.1),
           ),
-          _buildStatColumn('Asistencias', '$_attendedClasses'),
+          Expanded(child: _buildStatColumn('Asistencias', '$_attendedClasses')),
           Container(
-            height: 40,
+            height: 36,
             width: 1,
             color: Colors.white.withValues(alpha: 0.1),
           ),
-          Column(
-            children: [
-              Text(
-                '${percentage.toStringAsFixed(1)}%',
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: percentageColor,
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  '${percentage.toStringAsFixed(1)}%',
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: percentageColor,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Porcentaje',
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.white54),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  'Porcentaje',
+                  style: GoogleFonts.inter(fontSize: 11, color: Colors.white54),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -344,7 +355,7 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
         Text(
           value,
           style: GoogleFonts.outfit(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -352,7 +363,8 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 12, color: Colors.white54),
+          style: GoogleFonts.inter(fontSize: 11, color: Colors.white54),
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

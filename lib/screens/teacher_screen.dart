@@ -32,7 +32,7 @@ class _TeacherScreenState extends State<TeacherScreen>
     _radarAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat();
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTeacherClasses();
@@ -199,6 +199,7 @@ class _TeacherScreenState extends State<TeacherScreen>
 
     setState(() {
       _activeClass = courseClass;
+      _radarAnimationController.repeat();
     });
 
     await nearbyService.startDiscovering(
@@ -245,6 +246,7 @@ class _TeacherScreenState extends State<TeacherScreen>
       'subject': activeClass.subjectName ?? '',
       'code': 'UNIVERSAL',
       'date': now.toIso8601String(),
+      'created_at': now.toIso8601String(),
       'students': presentNames,
     };
     historyList.add(jsonEncode(localRecord));
@@ -253,15 +255,12 @@ class _TeacherScreenState extends State<TeacherScreen>
     if (supabaseService.isCloudConfigured &&
         !activeClass.id.startsWith('local_')) {
       try {
-        final dateStr =
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-
         final sessionRow = await Supabase.instance.client
             .from('attendance_sessions')
             .insert({
               'class_id': activeClass.id,
               'code': 'UNIVERSAL',
-              'session_date': dateStr,
+              'session_date': now.toIso8601String(),
             })
             .select('id')
             .single();
@@ -308,6 +307,7 @@ class _TeacherScreenState extends State<TeacherScreen>
     if (mounted) {
       setState(() {
         _activeClass = null;
+        _radarAnimationController.stop();
       });
     }
   }
@@ -626,7 +626,10 @@ class _TeacherScreenState extends State<TeacherScreen>
                 onPressed: () async {
                   await nearbyService.cancelDiscovery();
                   if (mounted) {
-                    setState(() => _activeClass = null);
+                    setState(() {
+                      _activeClass = null;
+                      _radarAnimationController.stop();
+                    });
                   }
                 },
                 style: OutlinedButton.styleFrom(

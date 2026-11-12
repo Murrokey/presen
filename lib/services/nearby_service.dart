@@ -1,15 +1,15 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nearby_connections/nearby_connections.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 import '../models/attendance_session.dart';
 
 class NearbyService extends ChangeNotifier {
-  final Strategy strategy = Strategy.P2P_STAR;
+  final Strategy strategy = Strategy.P2P_CLUSTER;
   final String myDeviceId = Random().nextInt(100000000).toString();
   final String universalServiceId = 'com.presen.app.universal';
 
@@ -27,6 +27,16 @@ class NearbyService extends ChangeNotifier {
 
   List<StudentData> presentStudents = [];
   String errorMessage = '';
+
+  final List<String> _connectionQueue = [];
+  final Set<String> _processedEndpoints = {};
+  final List<String> _activeStudentEndpoints = [];
+  bool _isConnectingToEndpoint = false;
+
+  String _activeTeacherFirst = '';
+  String _activeTeacherLast = '';
+  String _activeCourse = '';
+  String _activeSubject = '';
 
   Future<bool> checkPermissions() async {
     errorMessage = '';
@@ -97,8 +107,12 @@ class NearbyService extends ChangeNotifier {
     bool hasPermissions = await checkPermissions();
     if (!hasPermissions) return;
 
+    await Nearby().stopAdvertising();
+    await Nearby().stopAllEndpoints();
+    await Future.delayed(const Duration(milliseconds: 150));
+
     myName = name;
-    savedCourse = course;
+    savedCourse = course.trim();
 
     attendanceConfirmed = false;
     attendanceCanceled = false;
@@ -106,13 +120,14 @@ class NearbyService extends ChangeNotifier {
     pendingClasses.clear();
 
     try {
+      final sessionToken = DateTime.now().millisecondsSinceEpoch % 10000;
       bool a = await Nearby().startAdvertising(
-        myName,
+        '$myName#$sessionToken',
         strategy,
         onConnectionInitiated: (String id, ConnectionInfo info) async {
           await Nearby().acceptConnection(
             id,
-            onPayLoadRecieved: (endId, payload) {
+            onPayLoadRecieved: (endId, payload) async {
               if (payload.type == PayloadType.BYTES) {
                 String str = String.fromCharCodes(payload.bytes!);
 
@@ -125,8 +140,8 @@ class NearbyService extends ChangeNotifier {
                   if (parts.length >= 5) {
                     String tFirstName = parts[1];
                     String tLastName = parts[2];
-                    String cCourse = parts[3];
-                    String cSubject = parts[4];
+                    String cCourse = parts[3].trim();
+                    String cSubject = parts[4].trim();
 
                     if (savedCourse.isEmpty) {
                       if (!pendingClasses.any((p) => p.endpointId == endId)) {
@@ -140,14 +155,17 @@ class NearbyService extends ChangeNotifier {
                         );
                         notifyListeners();
                       }
-                    } else if (savedCourse == cCourse) {
+                    } else if (savedCourse.toLowerCase() ==
+                        cCourse.toLowerCase()) {
                       confirmedClassName = '$cCourse ($cSubject)';
                       attendanceConfirmed = true;
-                      Nearby().sendBytesPayload(
+                      isAdvertising = false;
+                      notifyListeners();
+
+                      await Nearby().sendBytesPayload(
                         endId,
                         Uint8List.fromList('ACK|$myName|$myDeviceId'.codeUnits),
                       );
-                      notifyListeners();
                     } else {
                       Nearby().disconnectFromEndpoint(endId);
                     }
@@ -184,16 +202,12 @@ class NearbyService extends ChangeNotifier {
       savedCourse = course;
       confirmedClassName = '$course ($subject)';
       attendanceConfirmed = true;
+      isAdvertising = false;
       Nearby().sendBytesPayload(
         endpointId,
         Uint8List.fromList('ACK|$myName|$myDeviceId'.codeUnits),
       );
-
-      for (var p in pendingClasses) {
-        if (p.endpointId != endpointId) {
-          Nearby().disconnectFromEndpoint(p.endpointId);
-        }
-      }
+      Nearby().stopAdvertising();
       pendingClasses.clear();
     } else {
       pendingClasses.removeWhere((p) => p.endpointId == endpointId);
@@ -203,6 +217,7 @@ class NearbyService extends ChangeNotifier {
   }
 
   Future<void> stopAdvertising() async {
+    await Nearby().stopDiscovery();
     await Nearby().stopAdvertising();
     await Nearby().stopAllEndpoints();
     isAdvertising = false;
@@ -221,67 +236,139 @@ class NearbyService extends ChangeNotifier {
     bool hasPermissions = await checkPermissions();
     if (!hasPermissions) return;
 
+    await Nearby().stopDiscovery();
+    await Nearby().stopAllEndpoints();
+    await Future.delayed(const Duration(milliseconds: 150));
+
     presentStudents.clear();
+    _connectionQueue.clear();
+    _processedEndpoints.clear();
+    _activeStudentEndpoints.clear();
+    _isConnectingToEndpoint = false;
+
+    _activeTeacherFirst = teacherFirstName;
+    _activeTeacherLast = teacherLastName;
+    _activeCourse = course.trim();
+    _activeSubject = subject.trim();
 
     try {
+      final sessionToken = DateTime.now().millisecondsSinceEpoch % 10000;
       bool a = await Nearby().startDiscovery(
-        'Profesor',
+        'Profesor#$sessionToken',
         strategy,
-        onEndpointFound: (String id, String endpointName, String serviceId) async {
-          await Nearby().requestConnection(
-            'Profesor',
-            id,
-            onConnectionInitiated: (String id, ConnectionInfo info) async {
-              await Nearby().acceptConnection(
-                id,
-                onPayLoadRecieved: (endId, payload) {
-                  if (payload.type == PayloadType.BYTES) {
-                    String str = String.fromCharCodes(payload.bytes!);
-
-                    if (str.startsWith('ACK|')) {
-                      List<String> parts = str.split('|');
-                      if (parts.length >= 2) {
-                        String studentName = parts[1];
-                        String deviceId = parts.length > 2 ? parts[2] : endId;
-
-                        if (!presentStudents.any((s) => s.id == deviceId)) {
-                          presentStudents.add(
-                            StudentData(
-                              id: deviceId,
-                              endpointId: endId,
-                              name: studentName,
-                              isPresent: true,
-                            ),
-                          );
-                          notifyListeners();
-                        }
-                      }
-                    }
-                  }
-                },
-              );
-            },
-            onConnectionResult: (String id, Status status) {
-              if (status == Status.CONNECTED) {
-                Nearby().sendBytesPayload(
-                  id,
-                  Uint8List.fromList(
-                    'REQ|$teacherFirstName|$teacherLastName|$course|$subject'
-                        .codeUnits,
-                  ),
-                );
-              }
-            },
-            onDisconnected: (String id) {},
-          );
+        onEndpointFound: (String id, String endpointName, String serviceId) {
+          if (!_processedEndpoints.contains(id) &&
+              !_connectionQueue.contains(id)) {
+            _connectionQueue.add(id);
+            _processNextInQueue();
+          }
         },
-        onEndpointLost: (String? id) {},
+        onEndpointLost: (String? id) {
+          if (id != null) {
+            _connectionQueue.remove(id);
+          }
+        },
         serviceId: universalServiceId,
       );
       isDiscovering = a;
       notifyListeners();
     } catch (e) {
       if (kDebugMode) print('Error iniciando discovery: $e');
+    }
+  }
+
+  Future<void> _processNextInQueue() async {
+    if (_isConnectingToEndpoint || _connectionQueue.isEmpty || !isDiscovering) {
+      return;
+    }
+
+    _isConnectingToEndpoint = true;
+    final String targetId = _connectionQueue.removeAt(0);
+
+    bool handled = false;
+    void releaseAndContinue() {
+      if (!handled) {
+        handled = true;
+        _isConnectingToEndpoint = false;
+        _processNextInQueue();
+      }
+    }
+
+    Future.delayed(const Duration(seconds: 4), () {
+      if (!handled) {
+        if (!_processedEndpoints.contains(targetId) &&
+            !_connectionQueue.contains(targetId)) {
+          _connectionQueue.add(targetId);
+        }
+        releaseAndContinue();
+      }
+    });
+
+    try {
+      final sessionToken = DateTime.now().millisecondsSinceEpoch % 10000;
+      await Nearby().requestConnection(
+        'Profesor#$sessionToken',
+        targetId,
+        onConnectionInitiated: (String id, ConnectionInfo info) async {
+          await Nearby().acceptConnection(
+            id,
+            onPayLoadRecieved: (endId, payload) async {
+              if (payload.type == PayloadType.BYTES) {
+                String str = String.fromCharCodes(payload.bytes!);
+
+                if (str.startsWith('ACK|')) {
+                  List<String> parts = str.split('|');
+                  if (parts.length >= 2) {
+                    String studentName = parts[1];
+                    String deviceId = parts.length > 2 ? parts[2] : endId;
+
+                    _processedEndpoints.add(endId);
+                    if (!_activeStudentEndpoints.contains(endId)) {
+                      _activeStudentEndpoints.add(endId);
+                    }
+
+                    if (!presentStudents.any(
+                      (s) =>
+                          s.id == deviceId ||
+                          s.name.toLowerCase() == studentName.toLowerCase(),
+                    )) {
+                      presentStudents.add(
+                        StudentData(
+                          id: deviceId,
+                          endpointId: endId,
+                          name: studentName,
+                          isPresent: true,
+                        ),
+                      );
+                      notifyListeners();
+                    }
+
+                    releaseAndContinue();
+                  }
+                }
+              }
+            },
+          );
+        },
+        onConnectionResult: (String id, Status status) {
+          if (status == Status.CONNECTED) {
+            Nearby().sendBytesPayload(
+              id,
+              Uint8List.fromList(
+                'REQ|$_activeTeacherFirst|$_activeTeacherLast|$_activeCourse|$_activeSubject'
+                    .codeUnits,
+              ),
+            );
+          } else {
+            releaseAndContinue();
+          }
+        },
+        onDisconnected: (String id) {
+          releaseAndContinue();
+        },
+      );
+    } catch (_) {
+      releaseAndContinue();
     }
   }
 
@@ -295,6 +382,10 @@ class NearbyService extends ChangeNotifier {
 
   Future<void> stopDiscovering() async {
     try {
+      _connectionQueue.clear();
+      _processedEndpoints.clear();
+      _activeStudentEndpoints.clear();
+      _isConnectingToEndpoint = false;
       await Nearby().stopDiscovery();
       await Nearby().stopAllEndpoints();
       isDiscovering = false;
@@ -306,17 +397,21 @@ class NearbyService extends ChangeNotifier {
 
   Future<void> cancelDiscovery() async {
     try {
-      for (var student in presentStudents) {
-        if (!student.id.startsWith('manual_')) {
-          Nearby().sendBytesPayload(
-            student.endpointId,
+      for (final endId in _activeStudentEndpoints) {
+        try {
+          await Nearby().sendBytesPayload(
+            endId,
             Uint8List.fromList('CANC|'.codeUnits),
           );
-        }
+        } catch (_) {}
       }
 
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 300));
 
+      _connectionQueue.clear();
+      _processedEndpoints.clear();
+      _activeStudentEndpoints.clear();
+      _isConnectingToEndpoint = false;
       await Nearby().stopDiscovery();
       await Nearby().stopAllEndpoints();
       isDiscovering = false;

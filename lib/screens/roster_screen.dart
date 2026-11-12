@@ -199,6 +199,7 @@ class _RosterScreenState extends State<RosterScreen> {
         .toList();
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFF12121A),
       appBar: AppBar(
         title: Text(

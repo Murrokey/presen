@@ -69,7 +69,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
         for (var session in (sessionsData as List)) {
           final rawDate =
-              (session['session_date'] ?? session['created_at'] ?? '')
+              (session['created_at'] ?? session['session_date'] ?? '')
                   .toString();
           final records = (session['attendance_records'] as List?) ?? [];
 
@@ -157,7 +157,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   String _formatDate(String rawDate) {
-    final dt = DateTime.tryParse(rawDate);
+    final dt = DateTime.tryParse(rawDate)?.toLocal();
     if (dt == null) return rawDate;
     final day = dt.day.toString().padLeft(2, '0');
     final month = dt.month.toString().padLeft(2, '0');
@@ -183,6 +183,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }).toList();
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFF12121A),
       appBar: AppBar(
         backgroundColor: Colors.transparent,

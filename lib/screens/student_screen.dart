@@ -102,7 +102,9 @@ class _StudentScreenState extends State<StudentScreen> {
               _buildTopBar(user, supabaseService),
               const SizedBox(height: 20),
               Expanded(
-                child: nearbyService.attendanceConfirmed
+                child: nearbyService.attendanceCanceled
+                    ? _buildCanceledState(nearbyService)
+                    : nearbyService.attendanceConfirmed
                     ? _buildConfirmedState(nearbyService)
                     : nearbyService.isAdvertising
                     ? _buildSearchingState(nearbyService)
@@ -405,6 +407,61 @@ class _StudentScreenState extends State<StudentScreen> {
           onPressed: () => nearbyService.stopAdvertising(),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6C63FF),
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: Text(
+            'Entendido',
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCanceledState(NearbyService nearbyService) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.redAccent.withValues(alpha: 0.15),
+            border: Border.all(color: Colors.redAccent, width: 2),
+          ),
+          child: const Icon(
+            Icons.cancel_outlined,
+            color: Colors.redAccent,
+            size: 80,
+          ),
+        ),
+        const SizedBox(height: 28),
+        Text(
+          'Asistencia Cancelada',
+          style: GoogleFonts.outfit(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.redAccent,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'El profesor canceló la toma de asistencia.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(fontSize: 15, color: Colors.white70),
+        ),
+        const SizedBox(height: 40),
+        ElevatedButton(
+          onPressed: () => nearbyService.stopAdvertising(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
