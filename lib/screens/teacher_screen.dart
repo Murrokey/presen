@@ -607,128 +607,133 @@ class _TeacherScreenState extends State<TeacherScreen>
         nearbyService.presentStudents.map((s) => s.name).toList()
           ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          '${_activeClass?.courseName ?? ''} (${_activeClass?.subjectName ?? ''})',
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () async {
-                  await nearbyService.cancelDiscovery();
-                  if (mounted) {
-                    setState(() {
-                      _activeClass = null;
-                      _radarAnimationController.stop();
-                    });
-                  }
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white70,
-                  side: const BorderSide(color: Colors.white24),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _finishAttendance,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: const Text(
-                  'Finalizar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: const Color(0xFF00B4D8).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFF00B4D8).withValues(alpha: 0.3),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '${_activeClass?.courseName ?? ''} (${_activeClass?.subjectName ?? ''})',
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          child: Row(
+          const SizedBox(height: 14),
+          Row(
             children: [
-              RotationTransition(
-                turns: _radarAnimationController,
-                child: const Icon(
-                  Icons.radar_rounded,
-                  color: Color(0xFF00B4D8),
-                  size: 32,
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    await nearbyService.cancelDiscovery();
+                    if (mounted) {
+                      setState(() {
+                        _activeClass = null;
+                        _radarAnimationController.stop();
+                      });
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'Buscando alumnos por proximidad...',
-                  style: GoogleFonts.inter(fontSize: 15, color: Colors.white),
+                child: ElevatedButton(
+                  onPressed: _finishAttendance,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Finalizar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          'Alumnos Presentes (${visibleStudents.length})',
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00B4D8).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF00B4D8).withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                RotationTransition(
+                  turns: _radarAnimationController,
+                  child: const Icon(
+                    Icons.radar_rounded,
+                    color: Color(0xFF00B4D8),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    'Buscando alumnos por proximidad...',
+                    style: GoogleFonts.inter(fontSize: 15, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Expanded(
-          child: visibleStudents.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.person_off_rounded,
-                        size: 56,
-                        color: Colors.white.withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Aún no hay alumnos detectados.',
-                        style: GoogleFonts.inter(color: Colors.white54),
-                      ),
-                    ],
+          const SizedBox(height: 20),
+          Text(
+            'Alumnos Presentes (${visibleStudents.length})',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          visibleStudents.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.person_off_rounded,
+                          size: 56,
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Aún no hay alumnos detectados.',
+                          style: GoogleFonts.inter(color: Colors.white54),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: visibleStudents.length,
                   itemBuilder: (context, index) {
                     final studentName = visibleStudents[index];
@@ -775,8 +780,8 @@ class _TeacherScreenState extends State<TeacherScreen>
                     );
                   },
                 ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1042,7 +1047,7 @@ class _TeacherScreenState extends State<TeacherScreen>
     );
   }
 
-   Future<void> _showManualAddDialog(NearbyService nearbyService) async {
+  Future<void> _showManualAddDialog(NearbyService nearbyService) async {
     final activeClass = _activeClass;
     if (activeClass == null) return;
 
@@ -1157,9 +1162,8 @@ class _TeacherScreenState extends State<TeacherScreen>
                               horizontal: 4,
                             ),
                             leading: CircleAvatar(
-                              backgroundColor: const Color(
-                                0xFF00B4D8,
-                              ).withValues(alpha: 0.2),
+                              backgroundColor: const Color(0xFF00B4D8)
+                                  .withValues(alpha: 0.2),
                               child: Text(
                                 studentName[0].toUpperCase(),
                                 style: const TextStyle(
