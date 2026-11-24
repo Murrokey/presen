@@ -270,9 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: Icons.class_outlined,
                             items: const [
                               DropdownMenuItem(
-                                value: '1ra',
-                                child: Text('1ra'),
-                              ),
+                                value: '1ra', child: Text('1ra')),                            
                             ],
                             onChanged: (val) {
                               if (val != null)

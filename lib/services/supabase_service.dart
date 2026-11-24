@@ -340,4 +340,30 @@ class SupabaseService extends ChangeNotifier {
   List<CourseClass> parseSavedClasses(List<String> entries) {
     return entries.map((e) => CourseClass.fromStorageEntry(e)).toList();
   }
-}
+  Future<List<String>> fetchCourseStudents(String courseId) async {
+    if (!isCloudConfigured || courseId.isEmpty) return [];
+
+    try {
+      final data = await Supabase.instance.client
+      .from('course_enrollments')
+      .select('user_profiles(first_name, last_name)')
+      .eq('course_id', courseId);
+
+      final Set<String> students = {};
+      for (final item in (data as List)) {
+        final profile = item['user_profiles'];
+        final fullName = '${profile?['first_name'] ?? ''} ${profile?['last_name'] ?? ''}' 
+          .trim();
+         if (fullName.isNotEmpty) {
+          students.add(fullName);
+        }
+      }
+       final sorted = students.toList()
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      return sorted;
+    } catch (_) {
+      return [];
+    }
+
+      }
+    }

@@ -1042,64 +1042,162 @@ class _TeacherScreenState extends State<TeacherScreen>
     );
   }
 
-  void _showManualAddDialog(NearbyService nearbyService) {
-    final formKey = GlobalKey<FormState>();
-    final manualNameController = TextEditingController();
+   Future<void> _showManualAddDialog(NearbyService nearbyService) async {
+    final activeClass = _activeClass;
+    if (activeClass == null) return;
+
+    final supabaseService = Provider.of<SupabaseService>(
+      context,
+      listen: false,
+    );
+
+    List<String> enrolledStudents = await supabaseService.fetchCourseStudents(
+      activeClass.courseId,
+    );
+
+    // Respaldo offline: si no trajo de Supabase, usa el roster local
+    if (enrolledStudents.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final rosterKey =
+          'roster_${activeClass.courseName}_${activeClass.subjectName}_UNIVERSAL';
+      enrolledStudents = prefs.getStringList(rosterKey) ?? [];
+    }
+
+    if (!mounted) return;
+
+    String searchQuery = '';
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: Text(
-          'Agregar Alumno Manualmente',
-          style: GoogleFonts.outfit(color: Colors.white),
-        ),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: manualNameController,
-            style: const TextStyle(color: Colors.white),
-            validator: (val) {
-              if (val == null || val.trim().length < 3) {
-                return 'Ingresa nombre y apellido válidos';
-              }
-              return null;
-            },
-            decoration: InputDecoration(
-              hintText: 'Nombre y apellido del alumno',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final presentNamesLower = nearbyService.presentStudents
+              .map((s) => s.name.trim().toLowerCase())
+              .toSet();
+
+          final availableStudents = enrolledStudents.where((name) {
+            final notPresent = !presentNamesLower.contains(
+              name.trim().toLowerCase(),
+            );
+            final matchesSearch =
+                searchQuery.isEmpty ||
+                name.toLowerCase().contains(searchQuery.toLowerCase());
+            return notPresent && matchesSearch;
+          }).toList();
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1A1A2E),
+            title: Text(
+              'Agregar Alumno Presente',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: Colors.white54),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (enrolledStudents.isNotEmpty) ...[
+                    TextField(
+                      style: const TextStyle(color: Colors.white),
+                      onChanged: (val) {
+                        setDialogState(() => searchQuery = val.trim());
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Buscar alumno...',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          color: Color(0xFF00B4D8),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (enrolledStudents.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        'No hay alumnos inscriptos en este curso.',
+                        style: GoogleFonts.inter(color: Colors.white54),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else if (availableStudents.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        searchQuery.isEmpty
+                            ? 'Todos los alumnos del curso ya están presentes.'
+                            : 'No se encontraron alumnos con "$searchQuery".',
+                        style: GoogleFonts.inter(color: Colors.white54),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: availableStudents.length,
+                        itemBuilder: (context, index) {
+                          final studentName = availableStudents[index];
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(
+                                0xFF00B4D8,
+                              ).withValues(alpha: 0.2),
+                              child: Text(
+                                studentName[0].toUpperCase(),
+                                style: const TextStyle(
+                                  color: Color(0xFF00B4D8),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              studentName,
+                              style: GoogleFonts.inter(color: Colors.white),
+                            ),
+                            trailing: const Icon(
+                              Icons.add_circle_outline_rounded,
+                              color: Color(0xFF00B4D8),
+                            ),
+                            onTap: () {
+                              nearbyService.addStudentManually(studentName);
+                              setDialogState(() {});
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                nearbyService.addStudentManually(
-                  manualNameController.text.trim(),
-                );
-                Navigator.pop(dialogContext);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00B4D8),
-            ),
-            child: const Text('Agregar', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text(
+                  'Cerrar',
+                  style: TextStyle(color: Color(0xFF00B4D8)),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

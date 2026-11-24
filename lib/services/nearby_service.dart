@@ -373,9 +373,21 @@ class NearbyService extends ChangeNotifier {
   }
 
   void addStudentManually(String name) {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) return;
+    
+      final alreadyPresent = presentStudents.any(
+      (s) => s.name.trim().toLowerCase() == cleanName.toLowerCase(),
+    );
+    if (alreadyPresent) return;
     final fakeId = 'manual_${DateTime.now().millisecondsSinceEpoch}';
     presentStudents.add(
-      StudentData(id: fakeId, endpointId: fakeId, name: name, isPresent: true),
+      StudentData(
+        id: fakeId,
+        endpointId: fakeId,
+        name: cleanName,
+        isPresent: true,
+      ),
     );
     notifyListeners();
   }
