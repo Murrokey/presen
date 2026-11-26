@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/course_class.dart';
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class HistoryScreen extends StatefulWidget {
   final CourseClass courseClass;
@@ -184,7 +185,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFF12121A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -209,7 +210,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               '${widget.courseClass.subjectName} · ${widget.courseClass.courseName}',
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: const Color(0xFF00B4D8),
+                color: AppColors.teacherPrimary,
               ),
             ),
           ],
@@ -219,7 +220,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF00B4D8)),
+                child: CircularProgressIndicator(color: AppColors.teacherPrimary),
               )
             : Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -234,7 +235,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         hintStyle: GoogleFonts.inter(color: Colors.white38),
                         prefixIcon: const Icon(
                           Icons.search_rounded,
-                          color: Color(0xFF00B4D8),
+                          color: AppColors.teacherPrimary,
                         ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),
@@ -285,7 +286,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       dividerColor: Colors.transparent,
                                     ),
                                     child: ExpansionTile(
-                                      iconColor: const Color(0xFF00B4D8),
+                                      iconColor: AppColors.teacherPrimary,
                                       collapsedIconColor: Colors.white54,
                                       tilePadding: const EdgeInsets.symmetric(
                                         horizontal: 16,
@@ -294,7 +295,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       leading: Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF00B4D8)
+                                          color: AppColors.teacherPrimary
                                               .withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(
                                             12,
@@ -302,7 +303,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         ),
                                         child: const Icon(
                                           Icons.calendar_month_rounded,
-                                          color: Color(0xFF00B4D8),
+                                          color: AppColors.teacherPrimary,
                                         ),
                                       ),
                                       title: Text(

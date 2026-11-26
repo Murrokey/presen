@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -104,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
+          borderSide: const BorderSide(color: AppColors.studentPrimary, width: 2),
         ),
       ),
     );
@@ -127,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
         items: items,
         onChanged: onChanged,
         style: const TextStyle(color: Colors.white, fontSize: 16),
-        dropdownColor: const Color(0xFF1A1A2E),
+        dropdownColor: AppColors.dialogSurface,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
@@ -337,7 +338,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ElevatedButton(
                     onPressed: supabaseService.isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C63FF),
+                      backgroundColor: AppColors.studentPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),

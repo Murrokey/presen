@@ -148,12 +148,10 @@ class SupabaseService extends ChangeNotifier {
             .from('user_profiles')
             .upsert(profile.toJson());
 
-        // Inscribir al alumno en course_enrollments de forma EXACTA
         if (role == 'student' &&
             yearLevel != null &&
             division != null &&
             careerName != null) {
-          // Buscamos primero la carrera para tener su id
           final careerData = await Supabase.instance.client
               .from('careers')
               .select('id')
@@ -161,7 +159,6 @@ class SupabaseService extends ChangeNotifier {
               .maybeSingle();
           if (careerData != null) {
             final careerId = careerData['id'];
-            // Buscamos el curso EXACTO con las 3 coincidencias
             final courseData = await Supabase.instance.client
                 .from('courses')
                 .select('id')

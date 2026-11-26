@@ -10,6 +10,7 @@ import '../models/course_class.dart';
 import '../models/subject.dart';
 import '../services/nearby_service.dart';
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class TeacherScreen extends StatefulWidget {
   const TeacherScreen({super.key});
@@ -330,11 +331,11 @@ class _TeacherScreenState extends State<TeacherScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF12121A),
+        backgroundColor: AppColors.background,
         floatingActionButton: nearbyService.isDiscovering
             ? FloatingActionButton.extended(
                 onPressed: () => _showManualAddDialog(nearbyService),
-                backgroundColor: const Color(0xFF00B4D8),
+                backgroundColor: AppColors.teacherPrimary,
                 icon: const Icon(
                   Icons.person_add_alt_1_rounded,
                   color: Colors.white,
@@ -349,7 +350,7 @@ class _TeacherScreenState extends State<TeacherScreen>
               )
             : FloatingActionButton(
                 onPressed: () => _showAddClassDialog(supabaseService),
-                backgroundColor: const Color(0xFF00B4D8),
+                backgroundColor: AppColors.teacherPrimary,
                 child: const Icon(Icons.add, color: Colors.white, size: 30),
               ),
         body: SafeArea(
@@ -404,10 +405,10 @@ class _TeacherScreenState extends State<TeacherScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00B4D8).withValues(alpha: 0.2),
+                  color: AppColors.teacherPrimary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: const Color(0xFF00B4D8).withValues(alpha: 0.5),
+                    color: AppColors.teacherPrimary.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
@@ -415,7 +416,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF00B4D8),
+                    color: AppColors.teacherPrimary,
                   ),
                 ),
               ),
@@ -458,7 +459,7 @@ class _TeacherScreenState extends State<TeacherScreen>
         Expanded(
           child: _isLoadingClasses
               ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF00B4D8)),
+                  child: CircularProgressIndicator(color: AppColors.teacherPrimary),
                 )
               : _savedClasses.isEmpty
               ? Center(
@@ -498,13 +499,13 @@ class _TeacherScreenState extends State<TeacherScreen>
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF00B4D8)
+                                    color: AppColors.teacherPrimary
                                         .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
                                     Icons.school_rounded,
-                                    color: Color(0xFF00B4D8),
+                                    color: AppColors.teacherPrimary,
                                     size: 24,
                                   ),
                                 ),
@@ -527,7 +528,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                                         courseClass.subjectName ?? 'Materia',
                                         style: GoogleFonts.inter(
                                           fontSize: 14,
-                                          color: const Color(0xFF00B4D8),
+                                          color: AppColors.teacherPrimary,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -565,7 +566,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                                   onPressed: () =>
                                       _startClassAttendance(courseClass),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF00B4D8)
+                                    backgroundColor: AppColors.teacherPrimary
                                         .withValues(alpha: 0.2),
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
@@ -578,13 +579,13 @@ class _TeacherScreenState extends State<TeacherScreen>
                                   ),
                                   icon: const Icon(
                                     Icons.play_arrow_rounded,
-                                    color: Color(0xFF00B4D8),
+                                    color: AppColors.teacherPrimary,
                                     size: 20,
                                   ),
                                   label: const Text(
                                     'Iniciar',
                                     style: TextStyle(
-                                      color: Color(0xFF00B4D8),
+                                      color: AppColors.teacherPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -674,10 +675,10 @@ class _TeacherScreenState extends State<TeacherScreen>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: const Color(0xFF00B4D8).withValues(alpha: 0.1),
+              color: AppColors.teacherPrimary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFF00B4D8).withValues(alpha: 0.3),
+                color: AppColors.teacherPrimary.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -686,7 +687,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                   turns: _radarAnimationController,
                   child: const Icon(
                     Icons.radar_rounded,
-                    color: Color(0xFF00B4D8),
+                    color: AppColors.teacherPrimary,
                     size: 32,
                   ),
                 ),
@@ -824,7 +825,7 @@ class _TeacherScreenState extends State<TeacherScreen>
           }
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: AppColors.dialogSurface,
             title: Text(
               'Agregar Nueva Comisión',
               style: GoogleFonts.outfit(
@@ -960,7 +961,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                         );
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00B4D8),
+                  backgroundColor: AppColors.teacherPrimary,
                 ),
                 child: const Text(
                   'Guardar',
@@ -992,7 +993,7 @@ class _TeacherScreenState extends State<TeacherScreen>
       child: DropdownButtonFormField<T>(
         value: value,
         isExpanded: true,
-        dropdownColor: const Color(0xFF1A1A2E),
+        dropdownColor: AppColors.dialogSurface,
         style: const TextStyle(color: Colors.white, fontSize: 15),
         decoration: InputDecoration(
           labelText: label,
@@ -1014,7 +1015,7 @@ class _TeacherScreenState extends State<TeacherScreen>
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: AppColors.dialogSurface,
         title: Text(
           '¿Eliminar comisión?',
           style: GoogleFonts.outfit(color: Colors.white),
@@ -1091,7 +1092,7 @@ class _TeacherScreenState extends State<TeacherScreen>
           }).toList();
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: AppColors.dialogSurface,
             title: Text(
               'Agregar Alumno Presente',
               style: GoogleFonts.outfit(
@@ -1117,7 +1118,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                         ),
                         prefixIcon: const Icon(
                           Icons.search_rounded,
-                          color: Color(0xFF00B4D8),
+                          color: AppColors.teacherPrimary,
                         ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),
@@ -1162,12 +1163,12 @@ class _TeacherScreenState extends State<TeacherScreen>
                               horizontal: 4,
                             ),
                             leading: CircleAvatar(
-                              backgroundColor: const Color(0xFF00B4D8)
+                              backgroundColor: AppColors.teacherPrimary
                                   .withValues(alpha: 0.2),
                               child: Text(
                                 studentName[0].toUpperCase(),
                                 style: const TextStyle(
-                                  color: Color(0xFF00B4D8),
+                                  color: AppColors.teacherPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1178,7 +1179,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                             ),
                             trailing: const Icon(
                               Icons.add_circle_outline_rounded,
-                              color: Color(0xFF00B4D8),
+                              color: AppColors.teacherPrimary,
                             ),
                             onTap: () {
                               nearbyService.addStudentManually(studentName);
@@ -1196,7 +1197,7 @@ class _TeacherScreenState extends State<TeacherScreen>
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text(
                   'Cerrar',
-                  style: TextStyle(color: Color(0xFF00B4D8)),
+                  style: TextStyle(color: AppColors.teacherPrimary),
                 ),
               ),
             ],

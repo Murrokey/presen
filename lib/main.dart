@@ -12,6 +12,7 @@ import 'screens/student_screen.dart';
 import 'screens/teacher_screen.dart';
 import 'services/nearby_service.dart';
 import 'services/supabase_service.dart';
+import 'theme/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,14 +48,14 @@ class AttendanceApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6C63FF),
+          seedColor: AppColors.studentPrimary,
           brightness: Brightness.dark,
         ),
         textTheme: GoogleFonts.interTextTheme().apply(
           bodyColor: Colors.white,
           displayColor: Colors.white,
         ),
-        scaffoldBackgroundColor: const Color(0xFF12121A),
+        scaffoldBackgroundColor: AppColors.background,
       ),
       initialRoute: supabaseService.isAuthenticated ? '/home' : '/login',
       onGenerateRoute: (settings) {

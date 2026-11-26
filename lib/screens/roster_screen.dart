@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/course_class.dart';
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class RosterScreen extends StatefulWidget {
   final CourseClass courseClass;
@@ -147,7 +148,7 @@ class _RosterScreenState extends State<RosterScreen> {
         await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: AppColors.dialogSurface,
             title: Text(
               'Eliminar Alumno',
               style: GoogleFonts.outfit(color: Colors.white),
@@ -200,7 +201,7 @@ class _RosterScreenState extends State<RosterScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFF12121A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           'Lista de Alumnos',
@@ -212,7 +213,7 @@ class _RosterScreenState extends State<RosterScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF00B4D8)),
+                child: CircularProgressIndicator(color: AppColors.teacherPrimary),
               )
             : SingleChildScrollView(
                 child: Padding(
@@ -236,7 +237,7 @@ class _RosterScreenState extends State<RosterScreen> {
                         widget.courseClass.subjectName ?? 'Materia',
                         style: GoogleFonts.inter(
                           fontSize: 16,
-                          color: const Color(0xFF00B4D8),
+                          color: AppColors.teacherPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -274,9 +275,9 @@ class _RosterScreenState extends State<RosterScreen> {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF00B4D8),
+                          foregroundColor: AppColors.teacherPrimary,
                           side: BorderSide(
-                            color: const Color(0xFF00B4D8)
+                            color: AppColors.teacherPrimary
                                 .withValues(alpha: 0.5),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -468,7 +469,7 @@ class _RosterScreenState extends State<RosterScreen> {
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFF00B4D8), size: 30),
+        Icon(icon, color: AppColors.teacherPrimary, size: 30),
         const SizedBox(height: 6),
         Text(
           value,

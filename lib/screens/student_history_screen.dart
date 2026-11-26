@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/subject.dart';
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class StudentHistoryScreen extends StatefulWidget {
   final Subject subject;
@@ -120,7 +121,7 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12121A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -144,7 +145,7 @@ class _StudentHistoryScreenState extends State<StudentHistoryScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF6C63FF)),
+                child: CircularProgressIndicator(color: AppColors.studentPrimary),
               )
             : Padding(
                 padding: const EdgeInsets.all(24.0),

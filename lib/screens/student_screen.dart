@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/subject.dart';
 import '../services/nearby_service.dart';
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
@@ -92,7 +93,7 @@ class _StudentScreenState extends State<StudentScreen> {
     final user = supabaseService.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12121A),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -136,10 +137,10 @@ class _StudentScreenState extends State<StudentScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+                color: AppColors.studentPrimary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xFF6C63FF).withValues(alpha: 0.5),
+                  color: AppColors.studentPrimary.withValues(alpha: 0.5),
                 ),
               ),
               child: Text(
@@ -148,7 +149,7 @@ class _StudentScreenState extends State<StudentScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF6C63FF),
+                  color: AppColors.studentPrimary,
                 ),
               ),
             ),
@@ -184,7 +185,7 @@ class _StudentScreenState extends State<StudentScreen> {
         Expanded(
           child: _isLoadingSubjects
               ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF6C63FF)),
+                  child: CircularProgressIndicator(color: AppColors.studentPrimary),
                 )
               : _mySubjects.isEmpty
               ? Center(
@@ -220,13 +221,13 @@ class _StudentScreenState extends State<StudentScreen> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6C63FF)
+                                color: AppColors.studentPrimary
                                     .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
                                 Icons.menu_book_rounded,
-                                color: Color(0xFF6C63FF),
+                                color: AppColors.studentPrimary,
                                 size: 24,
                               ),
                             ),
@@ -270,13 +271,13 @@ class _StudentScreenState extends State<StudentScreen> {
         ElevatedButton(
           onPressed: _onStartAttendance,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6C63FF),
+            backgroundColor: AppColors.studentPrimary,
             padding: const EdgeInsets.symmetric(vertical: 20),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
             elevation: 8,
-            shadowColor: const Color(0xFF6C63FF).withValues(alpha: 0.5),
+            shadowColor: AppColors.studentPrimary.withValues(alpha: 0.5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -306,9 +307,9 @@ class _StudentScreenState extends State<StudentScreen> {
           padding: const EdgeInsets.all(36),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+            color: AppColors.studentPrimary.withValues(alpha: 0.1),
             border: Border.all(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+              color: AppColors.studentPrimary.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
@@ -316,7 +317,7 @@ class _StudentScreenState extends State<StudentScreen> {
             height: 70,
             width: 70,
             child: CircularProgressIndicator(
-              color: Color(0xFF6C63FF),
+              color: AppColors.studentPrimary,
               strokeWidth: 4,
             ),
           ),
@@ -406,7 +407,7 @@ class _StudentScreenState extends State<StudentScreen> {
         ElevatedButton(
           onPressed: () => nearbyService.stopAdvertising(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6C63FF),
+            backgroundColor: AppColors.studentPrimary,
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
